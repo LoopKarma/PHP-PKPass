@@ -38,7 +38,7 @@ class PKPass
      * Holds the json
      * Variable: class
      */
-    protected $JSON;
+    protected $json;
 
     /*
      * Holds the SHAs of the $files array
@@ -93,7 +93,7 @@ class PKPass
             $this->setCertificatePassword($certPass);
         }
         if ($JSON != false) {
-            $this->setJSON($JSON);
+            $this->setJson($JSON);
         }
     }
 
@@ -156,10 +156,10 @@ class PKPass
      * Parameter: json-string
      * Return: boolean, true on succes, false if json wasn't decodable
      */
-    public function setJSON($JSON)
+    public function setJson($json)
     {
-        if (json_decode($JSON) !== false) {
-            $this->JSON = $JSON;
+        if (json_decode($json) !== false) {
+            $this->json = $json;
             return true;
         }
         $this->sError = 'This is not a JSON string.';
@@ -172,14 +172,16 @@ class PKPass
      * Parameter: string, optional, name to create file as
      * Return: boolean, true on succes, false if file doesn't exist
      */
-    public function addFile($path, $name = NULL)
+    public function addFile($path = false, $name = false)
     {
-        if (file_exists($path)) {
-            $name = ($name === NULL) ? basename($path) : $name;
-            $this->files[$name] = $path;
-            return true;
+        if ($path) {
+            if (file_exists($path)) {
+                $filename = $name ? $name : basename($path);
+                $this->files[$filename] = $path;
+                return true;
+            }
+            $this->sError = 'File does not exist.';
         }
-        $this->sError = 'File does not exist.';
         return false;
     }
 
@@ -274,18 +276,18 @@ class PKPass
     protected function createManifest()
     {
         // Creates SHA hashes for all files in package
-        $this->SHAs['pass.json'] = sha1($this->JSON);
-        $hasicon = false;
+        $this->SHAs['pass.json'] = sha1($this->json);
+        $hasIcon = false;
         foreach ($this->files as $name => $path) {
             if (strtolower($name) == 'icon.png') {
-                $hasicon = true;
+                $hasIcon = true;
             }
             $this->SHAs[$name] = sha1(file_get_contents($path));
 
         }
 
-        if (!$hasicon) {
-            $this->sError = 'Missing required icon.png file.';
+        if (!$hasIcon) {
+            $this->sError = 'Missing required icon file.';
             $this->clean();
             return false;
         }
@@ -373,7 +375,7 @@ class PKPass
 
         $zip->addFile($paths['signature'], 'signature');
         $zip->addFromString('manifest.json', $manifest);
-        $zip->addFromString('pass.json', $this->JSON);
+        $zip->addFromString('pass.json', $this->json);
         foreach ($this->files as $name => $path) {
             $zip->addFile($path, $name);
         }

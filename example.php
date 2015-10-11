@@ -75,7 +75,7 @@ $passData = array_merge(
     $webServiceKeys
 );
 
-$pass->setJSON(json_encode($passData));
+$pass->setJson(json_encode($passData));
 
 // Add files to the PKPass package
 $pass->addFile('images/icon.png');
